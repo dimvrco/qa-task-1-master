@@ -1,0 +1,39 @@
+version: '3.7'
+services:
+
+  chromedriver:
+    image: blueimp/chromedriver
+    container_name: ca-chromedriver
+    init: true
+    environment:
+      - ENABLE_VNC=true
+      - EXPOSE_X11=true
+    ports:
+      - 5900:5900
+    networks:
+      - default
+      - core-admin
+
+  nightwatch:
+    # image: blueimp/nightwatch:1.0
+    container_name: ca-nightwatch
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    init: true
+    depends_on:
+      - chromedriver
+    environment:
+      - WAIT_FOR_HOSTS=ca-app:80 ca-chromedriver:4444 ca-chromedriver:6000
+    volumes:
+      - ./test:/home/nightwatch
+    networks:
+      - default
+      - core-admin
+
+networks:
+  default:
+    driver: bridge
+  core-admin:
+    external:
+      name: ca_default

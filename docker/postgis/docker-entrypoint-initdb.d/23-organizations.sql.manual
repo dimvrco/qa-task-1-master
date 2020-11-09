@@ -1,0 +1,36 @@
+CREATE TABLE public.organizations (
+    id bigint NOT NULL,
+    name character varying,
+    uuid uuid DEFAULT public.gen_random_uuid(),
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    user_id bigint,
+    address character varying,
+    phone character varying,
+    email character varying
+);
+
+ALTER TABLE public.organizations OWNER TO geosite;
+
+CREATE SEQUENCE public.organizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER TABLE public.organizations_id_seq OWNER TO geosite;
+
+ALTER SEQUENCE public.organizations_id_seq OWNED BY public.organizations.id;
+
+ALTER TABLE ONLY public.organizations ALTER COLUMN id SET DEFAULT nextval('public.organizations_id_seq'::regclass);
+
+COPY public.organizations (id, name, uuid, created_at, updated_at, user_id, address, phone, email) FROM stdin;
+1	*	00000000-0000-0000-0000-000000000001	2020-08-02 20:13:45.820049	2020-08-02 20:13:45.820049	1	\N	\N	\N
+2	Geosite Inc.	00000000-0000-0000-0000-000000000002	2020-08-02 20:13:45.827822	2020-08-02 20:13:45.827822	1	\N	\N	\N
+\.
+
+SELECT pg_catalog.setval('public.organizations_id_seq', 3, false);
+
+ALTER TABLE ONLY public.organizations
+    ADD CONSTRAINT organizations_pkey PRIMARY KEY (id);

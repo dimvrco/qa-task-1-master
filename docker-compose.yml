@@ -1,0 +1,68 @@
+version: '3.7'
+
+x-logging:
+  &default-logging
+  options:
+    max-size: '1m'
+    max-file: '1'
+  driver: json-file
+
+services:
+
+  app:
+    container_name: ca-app
+    build:
+      context: ./
+      dockerfile: ./docker/app/buster.Dockerfile
+    logging: *default-logging
+    volumes:
+      - './app:/app'
+    env_file:
+      - ./.env
+    ports:
+      - 8080:80
+
+    # uncomment below if on Linux and having file permission issues
+    # and run docker-compose like so:
+    #   UID=${UID} GID=${GID} docker-compose up
+    # user: "${UID}:${GID}"
+
+    # uncomment below to get terminal
+    tty: true
+    command: ["bash"]
+
+  postgis:
+    container_name: ca-postgis
+    image: ca-postgis:latest
+    volumes:
+      - postgis_data:/data
+      - postgis_log:/log
+    env_file:
+      - ./.env
+    build: 
+      context: ./docker
+      dockerfile: ./postgis/Dockerfile
+    logging: *default-logging
+
+  pgadmin:
+    container_name: ca-pgadmin
+    image: dpage/pgadmin4
+    ports:
+      - 8081:80
+    env_file:
+      - ./.env
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      # https://www.pgadmin.org/docs/pgadmin4/development/import_export_servers.html
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
+    depends_on:
+      - postgis
+    logging: *default-logging
+
+volumes:
+  postgis_data:
+    driver: local
+  postgis_log:
+    driver: local
+  pgadmin_data:
+    driver: local

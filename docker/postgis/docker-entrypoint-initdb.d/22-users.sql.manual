@@ -1,0 +1,39 @@
+CREATE TABLE public.users (
+    id bigint NOT NULL,
+    uuid uuid DEFAULT public.gen_random_uuid(),
+    name_first character varying,
+    name_last character varying,
+    nickname character varying,
+    avatar_url character varying,
+    email character varying,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    preferences jsonb,
+    avatar_image bytea,
+    non_user_notification_state jsonb
+);
+
+ALTER TABLE public.users OWNER TO geosite;
+
+CREATE SEQUENCE public.users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER TABLE public.users_id_seq OWNER TO geosite;
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+COPY public.users (id, uuid, name_first, name_last, nickname, avatar_url, email, created_at, updated_at, preferences, avatar_image, non_user_notification_state) FROM stdin;
+1	227ca59b-d7a1-4a8b-8456-48bad1c267a5	Jane	Doe	admin_1		admin@geosite.io	2020-08-02 20:13:45.535448	2020-08-03 03:04:31.20627	{"basemaps_preferred": ["layer_osm-monochrome", "layer_Google_Hybrid"]}	\N	\N
+2	043df1a7-1dbd-45b3-a468-5555b054d413	John	Doe	user_1		user@geosite.io	2020-08-02 20:13:45.535448	2020-08-03 03:04:31.20627	{"basemaps_preferred": ["layer_Google_Hybrid", "layer_osm-monochrome"]}	\N	\N
+\.
+
+SELECT pg_catalog.setval('public.users_id_seq', 2, false);
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);

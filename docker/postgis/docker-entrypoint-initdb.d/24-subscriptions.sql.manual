@@ -1,0 +1,38 @@
+CREATE TABLE public.subscriptions (
+    id bigint NOT NULL,
+    organization_id integer NOT NULL,
+    aoi jsonb NOT NULL,
+    starts_at timestamp without time zone DEFAULT now() NOT NULL,
+    ends_at timestamp without time zone,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+ALTER TABLE public.subscriptions OWNER TO geosite;
+
+CREATE SEQUENCE public.subscriptions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER TABLE public.subscriptions_id_seq OWNER TO geosite;
+
+ALTER SEQUENCE public.subscriptions_id_seq OWNED BY public.subscriptions.id;
+
+ALTER TABLE ONLY public.subscriptions ALTER COLUMN id SET DEFAULT nextval('public.subscriptions_id_seq'::regclass);
+
+COPY public.subscriptions (id, organization_id, aoi, starts_at, ends_at, created_at, updated_at) FROM stdin;
+1	2	{"crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:EPSG::3857"}}, "name": "Global", "type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-20026376.39, 20048966.1], [20026376.39, 20048966.1], [20026376.39, -20048966.1], [-20026376.39, -20048966.1], [-20026376.39, 20048966.1]]]}, "properties": {"id": 0}}]}	2020-08-02 20:13:47.816884	\N	2020-08-02 20:13:47.818014	2020-08-02 20:13:47.818014
+\.
+
+SELECT pg_catalog.setval('public.subscriptions_id_seq', 2, false);
+
+ALTER TABLE ONLY public.subscriptions
+    ADD CONSTRAINT subscriptions_pkey PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX index_subscriptions_on_organization_id_and_starts_at ON public.subscriptions USING btree (organization_id, starts_at);
+
+ALTER TABLE ONLY public.subscriptions
+    ADD CONSTRAINT fk_rails_364213cc3e FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
